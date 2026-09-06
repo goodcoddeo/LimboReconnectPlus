@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package net.elytrium.limboreconnect;
+package kr.dklight.limboreconnectplus;
 
 import com.google.inject.Inject;
 import com.velocitypowered.api.command.CommandManager;
@@ -42,6 +42,12 @@ import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+import kr.dklight.limboreconnectplus.commands.LimboReconnectCommand;
+import kr.dklight.limboreconnectplus.handler.ReconnectHandler;
+import kr.dklight.limboreconnectplus.listener.ReconnectListener;
+import kr.dklight.limboreconnectplus.protocol.packets.PlaySound;
+import kr.dklight.limboreconnectplus.queue.GraceQueueManager;
+import kr.dklight.limboreconnectplus.queue.QueueManager;
 import net.elytrium.limboapi.api.Limbo;
 import net.elytrium.limboapi.api.LimboFactory;
 import net.elytrium.limboapi.api.chunk.Dimension;
@@ -49,22 +55,21 @@ import net.elytrium.limboapi.api.chunk.VirtualWorld;
 import net.elytrium.limboapi.api.file.WorldFile;
 import net.elytrium.limboapi.api.protocol.PacketDirection;
 import net.elytrium.limboapi.api.protocol.packets.PacketMapping;
-import net.elytrium.limboreconnect.commands.LimboReconnectCommand;
-import net.elytrium.limboreconnect.handler.ReconnectHandler;
-import net.elytrium.limboreconnect.listener.ReconnectListener;
-import net.elytrium.limboreconnect.protocol.packets.PlaySound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.ComponentSerializer;
 import net.kyori.adventure.title.Title;
 import org.slf4j.Logger;
 
 @Plugin(
-    id = "limboreconnect",
-    name = "LimboReconnect",
+    id = "limboreconnectplus",
+    name = "LimboReconnectPlus",
     version = BuildConstants.VERSION,
-    authors = {"SkyWatcher_2019", "hevav"}
+    description = "A queue-powered reconnect plugin for Velocity.",
+    authors = {"dklight", "SkyWatcher_2019", "hevav"}
 )
 public class LimboReconnect {
+
+  private static final String SERVER_BRAND = "§x§7§c§f§f§a§aL§x§6§b§7§9§f§5R§x§F§F§6§7§B§7P§r";
 
   public static final Config CONFIG = new Config();
   @Inject
@@ -78,18 +83,25 @@ public class LimboReconnect {
   private final Path dataDirectory;
   private final LimboFactory factory;
   private final CommandMeta commandMeta;
+  private final QueueManager queueManager;
+  private final GraceQueueManager graceQueueManager;
   private Limbo limbo;
 
   @Inject
   public LimboReconnect(Logger logger, ProxyServer server, @DataDirectory Path dataDirectory) {
     setLogger(logger);
     this.server = server;
-    this.commandMeta = server.getCommandManager().metaBuilder("limboreconnect").plugin(this).build();
+    this.commandMeta = server.getCommandManager().metaBuilder("limboreconnectplus")
+        .aliases("lrp")
+        .plugin(this)
+        .build();
 
     this.dataDirectory = dataDirectory;
     this.configPath = dataDirectory.resolve("config.yml");
 
     this.factory = (LimboFactory) this.server.getPluginManager().getPlugin("limboapi").flatMap(PluginContainer::getInstance).orElseThrow();
+    this.queueManager = new QueueManager(this);
+    this.graceQueueManager = new GraceQueueManager();
   }
 
   public static ComponentSerializer<Component, Component, String> getSerializer() {
@@ -115,11 +127,7 @@ public class LimboReconnect {
 
   public void reload() {
     CONFIG.reload(this.configPath);
-
-    if (CONFIG.triggerMessage.equals("((?i)^(server closed|server is restarting|multiplayer\\.disconnect\\.server_shutdown))+$")) {
-      LOGGER.warn("Looks like you using default config!");
-      LOGGER.warn("Please check 'trigger-message' option and confirm, that it matches your server's restart message");
-    }
+    this.queueManager.reload();
 
     setSerializer(CONFIG.serializer.getSerializer());
 
@@ -147,7 +155,7 @@ public class LimboReconnect {
     }
 
     this.limbo = this.factory.createLimbo(world)
-        .setName("LimboReconnect")
+        .setName(SERVER_BRAND)
         .setShouldRejoin(CONFIG.useLimbo)
         .setShouldRespawn(CONFIG.useLimbo)
         .setGameMode(CONFIG.world.gamemode)
@@ -199,6 +207,8 @@ public class LimboReconnect {
     this.server.getEventManager().register(this, new ReconnectListener(this));
     CommandManager commandManager = this.server.getCommandManager();
     commandManager.unregister("limboreconnect");
+    commandManager.unregister("limboreconnectplus");
+    commandManager.unregister("lrp");
     commandManager.register(this.commandMeta, new LimboReconnectCommand(this));
   }
 
@@ -220,5 +230,21 @@ public class LimboReconnect {
 
     connectedPlayer.getTabList().clearAll();
     this.limbo.spawnPlayer(player, new ReconnectHandler(this, server));
+  }
+
+  public QueueManager getQueueManager() {
+    return this.queueManager;
+  }
+
+  public GraceQueueManager getGraceQueueManager() {
+    return this.graceQueueManager;
+  }
+
+  public ProxyServer getServer() {
+    return this.server;
+  }
+
+  public LimboFactory getFactory() {
+    return this.factory;
   }
 }

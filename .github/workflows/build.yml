@@ -19,13 +19,13 @@ jobs:
         with:
           distribution: temurin
           java-version: 25
-      - name: Build LimboReconnect
+      - name: Build LimboReconnectPlus
         run: ./gradlew build
-      - name: Upload LimboReconnect
+      - name: Upload LimboReconnectPlus
         uses: actions/upload-artifact@v4.6.2
         with:
-          name: LimboReconnect
-          path: "build/libs/LimboReconnect*.jar"
+          name: LimboReconnectPlus
+          path: "build/libs/LimboReconnectPlus*.jar"
       - uses: dev-drprasad/delete-tag-and-release@v0.2.1
         if: ${{ github.event_name == 'push' }}
         with:

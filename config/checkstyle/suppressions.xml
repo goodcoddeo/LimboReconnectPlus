@@ -4,12 +4,12 @@
         "http://checkstyle.org/dtds/suppressions_1_2.dtd">
 
 <suppressions>
-    <suppress files=".*[\\/]net[\\/]elytrium[\\/].*" checks="SummaryJavadoc"/>
-    <suppress files=".*[\\/]net[\\/]elytrium[\\/].*" checks="MissingJavadocType"/>
-    <suppress files=".*[\\/]net[\\/]elytrium[\\/].*" checks="MissingJavadocMethod"/>
+    <suppress files=".*[\\/](net[\\/]elytrium|kr[\\/]dklight)[\\/].*" checks="SummaryJavadoc"/>
+    <suppress files=".*[\\/](net[\\/]elytrium|kr[\\/]dklight)[\\/].*" checks="MissingJavadocType"/>
+    <suppress files=".*[\\/](net[\\/]elytrium|kr[\\/]dklight)[\\/].*" checks="MissingJavadocMethod"/>
 
-    <suppress files=".*[\\/]net[\\/]elytrium[\\/].*[\\/]Config.java" checks="TypeName"/>
-    <suppress files=".*[\\/]net[\\/]elytrium[\\/].*[\\/]Config.java" checks="LineLength"/>
-    <suppress files=".*[\\/]net[\\/]elytrium[\\/].*[\\/]Config.java" checks="MemberName"/>
-    <suppress files=".*[\\/]net[\\/]elytrium[\\/].*[\\/]Config.java" checks="RequireThis"/>
+    <suppress files=".*[\\/](net[\\/]elytrium|kr[\\/]dklight)[\\/].*[\\/]Config.java" checks="TypeName"/>
+    <suppress files=".*[\\/](net[\\/]elytrium|kr[\\/]dklight)[\\/].*[\\/]Config.java" checks="LineLength"/>
+    <suppress files=".*[\\/](net[\\/]elytrium|kr[\\/]dklight)[\\/].*[\\/]Config.java" checks="MemberName"/>
+    <suppress files=".*[\\/](net[\\/]elytrium|kr[\\/]dklight)[\\/].*[\\/]Config.java" checks="RequireThis"/>
 </suppressions>

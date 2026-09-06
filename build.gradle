@@ -6,8 +6,8 @@ plugins {
   id("com.gradleup.shadow").version("9.4.0")
 }
 
-setGroup("net.elytrium")  
-setVersion("1.1.7")
+setGroup("kr.dklight")  
+setVersion("1")
 
 compileJava {
   getOptions().setEncoding("UTF-8")
@@ -41,6 +41,7 @@ dependencies {
 }
 
 shadowJar {
+  getArchiveBaseName().set("LimboReconnectPlus")
   getArchiveClassifier().set("")
 
   relocate("net.elytrium.commons.velocity", "net.elytrium.limboapi.thirdparty.commons.velocity")

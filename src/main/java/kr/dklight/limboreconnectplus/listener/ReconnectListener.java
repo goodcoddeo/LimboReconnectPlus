@@ -15,14 +15,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package net.elytrium.limboreconnect.listener;
+package kr.dklight.limboreconnectplus.listener;
 
-import static net.elytrium.limboreconnect.LimboReconnect.CONFIG;
+import static kr.dklight.limboreconnectplus.LimboReconnect.CONFIG;
 
 import com.velocitypowered.api.event.Subscribe;
+import com.velocitypowered.api.event.command.CommandExecuteEvent;
+import com.velocitypowered.api.proxy.Player;
 import java.util.Objects;
+import kr.dklight.limboreconnectplus.LimboReconnect;
+import kr.dklight.limboreconnectplus.handler.ReconnectHandler;
 import net.elytrium.limboapi.api.event.LoginLimboRegisterEvent;
-import net.elytrium.limboreconnect.LimboReconnect;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.flattener.ComponentFlattener;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
@@ -57,7 +60,7 @@ public class ReconnectListener {
       }
 
       if (match) {
-        if (CONFIG.requirePermission && !kickEvent.getPlayer().hasPermission("limboreconnect.reconnect")) {
+        if (CONFIG.requirePermission && !kickEvent.getPlayer().hasPermission("limboreconnectplus.reconnect")) {
           return false;
         }
         this.plugin.addPlayer(kickEvent.getPlayer(), kickEvent.getServer());
@@ -66,5 +69,20 @@ public class ReconnectListener {
         return false;
       }
     });
+  }
+
+  @Subscribe
+  public void onCommandExecute(CommandExecuteEvent event) {
+    if (!(event.getCommandSource() instanceof Player player)) {
+      return;
+    }
+
+    ReconnectHandler handler = this.plugin.getQueueManager().getHandlerByPlayer(player);
+    if (handler != null && handler.isConnected()) {
+      String commandLine = event.getCommand();
+      if (handler.handleEscapeCommand(commandLine)) {
+        event.setResult(CommandExecuteEvent.CommandResult.denied());
+      }
+    }
   }
 }

@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package net.elytrium.limboreconnect;
+package kr.dklight.limboreconnectplus;
 
 // The constants are replaced before compilation
 public class BuildConstants {
