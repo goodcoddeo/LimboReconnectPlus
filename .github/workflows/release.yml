@@ -7,6 +7,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4.2.2
@@ -36,17 +38,17 @@ jobs:
           asset_path: build/libs/${{ steps.find-jar.outputs.jarname }}
           asset_name: ${{ steps.find-jar.outputs.jarname }}
           asset_content_type: application/java-archive
-      - name: Upload to Modrinth
-        uses: RubixDev/modrinth-upload@v1.0.0
-        with:
-          token: ${{ secrets.MODRINTH_TOKEN }}
-          file_path: build/libs/${{ steps.find-jar.outputs.jarname }}
-          name: Release ${{ github.event.release.tag_name }}
-          version: ${{ github.event.release.tag_name }}
-          changelog: ${{ github.event.release.body }}
-          relations: TZOteSf2:required
-          game_versions: 1.7.2
-          release_type: release
-          loaders: velocity
-          featured: true
-          project_id: 8lKLCxRW
+#      - name: Upload to Modrinth
+#        uses: RubixDev/modrinth-upload@v1.0.0
+#        with:
+#          token: ${{ secrets.MODRINTH_TOKEN }}
+#          file_path: build/libs/${{ steps.find-jar.outputs.jarname }}
+#          name: Release ${{ github.event.release.tag_name }}
+#          version: ${{ github.event.release.tag_name }}
+#          changelog: ${{ github.event.release.body }}
+#          relations: TZOteSf2:required
+#          game_versions: 1.7.2
+#          release_type: release
+#          loaders: velocity
+#          featured: true
+#          project_id: 8lKLCxRW
