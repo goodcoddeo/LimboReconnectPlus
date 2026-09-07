@@ -29,9 +29,17 @@ public class QueueManager {
 
   private final LimboReconnect plugin;
   private final ConcurrentMap<RegisteredServer, ServerQueue> queues = new ConcurrentHashMap<>();
+  private boolean cleanupScheduled = false;
 
   public QueueManager(LimboReconnect plugin) {
     this.plugin = plugin;
+  }
+
+  public synchronized void startPeriodicCleanup() {
+    if (this.cleanupScheduled) {
+      return;
+    }
+    this.cleanupScheduled = true;
     this.plugin.getServer().getScheduler()
         .buildTask(this.plugin, () -> this.plugin.getGraceQueueManager().cleanExpired())
         .repeat(Duration.ofMinutes(5))

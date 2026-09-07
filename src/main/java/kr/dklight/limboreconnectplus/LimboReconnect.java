@@ -128,6 +128,7 @@ public class LimboReconnect {
   public void reload() {
     CONFIG.reload(this.configPath);
     this.queueManager.reload();
+    this.queueManager.startPeriodicCleanup();
 
     setSerializer(CONFIG.serializer.getSerializer());
 
