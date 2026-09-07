@@ -69,7 +69,7 @@ import org.slf4j.Logger;
 )
 public class LimboReconnect {
 
-  private static final String SERVER_BRAND = "§x§7§c§f§f§a§aL§x§6§b§7§9§f§5R§x§F§F§6§7§B§7P§r";
+  private static final String SERVER_BRAND = "LRP dklight.kr";
 
   public static final Config CONFIG = new Config();
   @Inject
