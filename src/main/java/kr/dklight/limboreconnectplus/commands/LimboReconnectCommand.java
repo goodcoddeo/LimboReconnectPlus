@@ -37,7 +37,8 @@ import net.kyori.adventure.text.format.NamedTextColor;
 public class LimboReconnectCommand implements SimpleCommand {
 
   private static final List<Component> HELP_MESSAGE = List.of(
-      Component.text("LimboReconnectPlus by dklight - Powered by LimboAPI", NamedTextColor.GOLD),
+      Component.text("This server is using LimboReconnectPlus and LimboAPI.", NamedTextColor.YELLOW),
+      Component.text("Re-made by dklight", NamedTextColor.GOLD),
       Component.empty()
   );
 

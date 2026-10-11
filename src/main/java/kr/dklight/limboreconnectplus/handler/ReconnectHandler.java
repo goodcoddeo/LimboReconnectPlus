@@ -55,8 +55,9 @@ public class ReconnectHandler implements LimboSessionHandler {
   private String groupName = "default";
   private long entryTime;
   private long offlineSince = -1;
-  private boolean parkourActive = false;
-  private long parkourStartTime = 0;
+  private double currentX;
+  private double currentY;
+  private double currentZ;
   private final PlaySound waitSound;
   private final PlaySound connectSound;
 
@@ -64,12 +65,14 @@ public class ReconnectHandler implements LimboSessionHandler {
     this.plugin = plugin;
     this.server = server;
     this.spawnTime = System.currentTimeMillis();
+    this.currentX = CONFIG.world.playerCoords.x;
+    this.currentY = CONFIG.world.playerCoords.y;
+    this.currentZ = CONFIG.world.playerCoords.z;
     Config.Sounds sounds = CONFIG.sounds;
-    double playerX = CONFIG.world.playerCoords.x;
-    double playerY = CONFIG.world.playerCoords.y;
-    double playerZ = CONFIG.world.playerCoords.z;
-    this.waitSound = new PlaySound(sounds.waiting.name, playerX, playerY, playerZ, sounds.waiting.volume, sounds.waiting.pitch);
-    this.connectSound = new PlaySound(sounds.connecting.name, playerX, playerY, playerZ, sounds.connecting.volume, sounds.connecting.pitch);
+    float waitVol = Math.max(sounds.waiting.volume, 1000.0f);
+    float connVol = Math.max(sounds.connecting.volume, 1000.0f);
+    this.waitSound = new PlaySound(sounds.waiting.name, this.currentX, this.currentY, this.currentZ, waitVol, sounds.waiting.pitch);
+    this.connectSound = new PlaySound(sounds.connecting.name, this.currentX, this.currentY, this.currentZ, connVol, sounds.connecting.pitch);
   }
 
   @Override
@@ -79,6 +82,7 @@ public class ReconnectHandler implements LimboSessionHandler {
     this.computePriorityAndGroup();
     this.player.disableFalling();
     this.player.setGameMode(CONFIG.world.gamemode);
+    this.player.sendAbilities((byte) 0x06, 0.05f, 0.1f);
 
     GraceQueueManager.GraceEntry grace = this.plugin.getGraceQueueManager().claimGraceSession(
         this.player.getProxyPlayer().getUniqueId(), this.server.getServerInfo().getName()
@@ -145,6 +149,9 @@ public class ReconnectHandler implements LimboSessionHandler {
 
   @Override
   public void onMove(double x, double y, double z) {
+    this.currentX = x;
+    this.currentY = y;
+    this.currentZ = z;
     this.waitSound.setPosition(x, y, z);
     this.connectSound.setPosition(x, y, z);
 
@@ -156,36 +163,12 @@ public class ReconnectHandler implements LimboSessionHandler {
           CONFIG.world.playerCoords.yaw,
           CONFIG.world.playerCoords.pitch
       );
-      if (this.parkourActive) {
-        this.parkourActive = false;
-        if (CONFIG.parkour != null && CONFIG.parkour.enabled
-            && CONFIG.parkour.resetMessage != null && !CONFIG.parkour.resetMessage.isEmpty()) {
-          ComponentSerializer<Component, Component, String> serializer = LimboReconnect.getSerializer();
-          this.player.getProxyPlayer().sendMessage(serializer.deserialize(CONFIG.parkour.resetMessage));
-        }
-      }
-      return;
-    }
-
-    if (CONFIG.parkour != null && CONFIG.parkour.enabled && this.player != null) {
-      if (!this.parkourActive && CONFIG.parkour.startBox != null && CONFIG.parkour.startBox.contains(x, y, z)) {
-        this.parkourActive = true;
-        this.parkourStartTime = System.currentTimeMillis();
-        if (CONFIG.parkour.startMessage != null && !CONFIG.parkour.startMessage.isEmpty()) {
-          ComponentSerializer<Component, Component, String> serializer = LimboReconnect.getSerializer();
-          this.player.getProxyPlayer().sendMessage(serializer.deserialize(CONFIG.parkour.startMessage));
-        }
-      } else if (this.parkourActive && CONFIG.parkour.endBox != null && CONFIG.parkour.endBox.contains(x, y, z)) {
-        this.parkourActive = false;
-        long elapsed = System.currentTimeMillis() - this.parkourStartTime;
-        double sec = elapsed / 1000.0;
-        if (CONFIG.parkour.finishMessage != null && !CONFIG.parkour.finishMessage.isEmpty()) {
-          ComponentSerializer<Component, Component, String> serializer = LimboReconnect.getSerializer();
-          String finishMsg = CONFIG.parkour.finishMessage.replace("%time%", String.format(Locale.ROOT, "%.2f", sec));
-          this.player.getProxyPlayer().sendMessage(serializer.deserialize(finishMsg));
-        }
-        this.player.writePacket(this.connectSound);
-      }
+      this.currentX = CONFIG.world.playerCoords.x;
+      this.currentY = CONFIG.world.playerCoords.y;
+      this.currentZ = CONFIG.world.playerCoords.z;
+      this.waitSound.setPosition(this.currentX, this.currentY, this.currentZ);
+      this.connectSound.setPosition(this.currentX, this.currentY, this.currentZ);
+      this.player.sendAbilities((byte) 0x06, 0.05f, 0.1f);
     }
   }
 
@@ -199,13 +182,6 @@ public class ReconnectHandler implements LimboSessionHandler {
       return;
     }
     String cmd = text.substring(1).trim().toLowerCase(Locale.ROOT);
-    if (cmd.equals("parkour reset") || cmd.equals("parkour restart")) {
-      if (CONFIG.parkour != null && CONFIG.parkour.enabled) {
-        this.resetParkour();
-      }
-      return;
-    }
-
     if (cmd.equals("queue status") || cmd.equals("status")) {
       this.sendStatusMessage();
       return;
@@ -341,6 +317,7 @@ public class ReconnectHandler implements LimboSessionHandler {
 
     long queueDelay = Math.max(0, CONFIG.queueDelay);
     if (queueDelay <= 0) {
+      this.connectSound.setPosition(this.currentX, this.currentY, this.currentZ);
       this.player.writePacket(this.connectSound);
       this.player.getProxyPlayer().resetTitle();
       this.player.disconnect(this.server);
@@ -349,6 +326,7 @@ public class ReconnectHandler implements LimboSessionHandler {
 
     this.player.getScheduledExecutor().schedule(() -> {
       if (this.connected) {
+        this.connectSound.setPosition(this.currentX, this.currentY, this.currentZ);
         this.player.writePacket(this.connectSound);
         this.player.getProxyPlayer().resetTitle();
         this.player.disconnect(this.server);
@@ -400,6 +378,7 @@ public class ReconnectHandler implements LimboSessionHandler {
 
     this.tickTitleAndActionBar();
     this.tickChat();
+    this.waitSound.setPosition(this.currentX, this.currentY, this.currentZ);
     this.player.writePacket(this.waitSound);
     this.player.getScheduledExecutor().schedule(this::tickMessages, CONFIG.messages.titles.showDelay * 50, TimeUnit.MILLISECONDS);
   }
@@ -721,23 +700,5 @@ public class ReconnectHandler implements LimboSessionHandler {
       int online, int max, String statusStr) {
     String eta = this.plugin.getQueueManager().getEstimatedWaitTime(this.server, position);
     return this.replacePlaceholders(text, position, total, ahead, serverName, online, max, statusStr, eta);
-  }
-
-  public void resetParkour() {
-    this.parkourActive = false;
-    if (this.player != null) {
-      this.player.teleport(
-          CONFIG.world.playerCoords.x,
-          CONFIG.world.playerCoords.y,
-          CONFIG.world.playerCoords.z,
-          CONFIG.world.playerCoords.yaw,
-          CONFIG.world.playerCoords.pitch
-      );
-      if (CONFIG.parkour != null && CONFIG.parkour.enabled
-          && CONFIG.parkour.resetMessage != null && !CONFIG.parkour.resetMessage.isEmpty()) {
-        ComponentSerializer<Component, Component, String> serializer = LimboReconnect.getSerializer();
-        this.player.getProxyPlayer().sendMessage(serializer.deserialize(CONFIG.parkour.resetMessage));
-      }
-    }
   }
 }

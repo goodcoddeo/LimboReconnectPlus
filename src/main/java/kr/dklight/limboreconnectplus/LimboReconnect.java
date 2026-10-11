@@ -64,7 +64,7 @@ import org.slf4j.Logger;
     id = "limboreconnectplus",
     name = "LimboReconnectPlus",
     version = BuildConstants.VERSION,
-    description = "A queue-powered reconnect plugin for Velocity.",
+    description = "Re-made by dklight",
     authors = {"dklight", "SkyWatcher_2019", "hevav"}
 )
 public class LimboReconnect {

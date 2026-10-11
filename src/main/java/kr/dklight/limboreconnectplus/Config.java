@@ -83,7 +83,6 @@ public class Config extends YamlSerializable {
   public Sounds sounds;
   public PriorityGroups priorityGroups;
   public EscapeCommands escapeCommands;
-  public Parkour parkour;
   public DiscordWebhook discordWebhook;
   public Map<String, ServerOverride> servers = Map.of();
   public boolean debug = false;
@@ -96,7 +95,6 @@ public class Config extends YamlSerializable {
     this.sounds = new Sounds();
     this.priorityGroups = new PriorityGroups();
     this.escapeCommands = new EscapeCommands();
-    this.parkour = new Parkour();
     this.discordWebhook = new DiscordWebhook();
   }
 
@@ -295,7 +293,7 @@ public class Config extends YamlSerializable {
     public static class Sound {
 
       public String name;
-      public float volume = 1.0f;
+      public float volume = 1000.0f;
       public float pitch = 1.0f;
 
       public Sound() {
@@ -357,47 +355,6 @@ public class Config extends YamlSerializable {
     }
   }
 
-
-  public static class Parkour {
-
-    public boolean enabled = false;
-    public Cuboid startBox = new Cuboid(-5, 95, -5, 5, 105, 5);
-    public Cuboid endBox = new Cuboid(20, 100, 20, 25, 105, 25);
-    public String startMessage = "<green>Parkour challenge started! Reach the finish line.";
-    public String finishMessage = "<gold><bold>Parkour finished in <yellow>%time%s</yellow>!</bold></gold>";
-    public String resetMessage = "<red>Parkour timer reset.";
-
-    public Parkour() {
-    }
-
-    public static class Cuboid {
-
-      public double minX = 0;
-      public double minY = 0;
-      public double minZ = 0;
-      public double maxX = 0;
-      public double maxY = 0;
-      public double maxZ = 0;
-
-      public Cuboid() {
-      }
-
-      public Cuboid(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        this.minX = Math.min(minX, maxX);
-        this.minY = Math.min(minY, maxY);
-        this.minZ = Math.min(minZ, maxZ);
-        this.maxX = Math.max(minX, maxX);
-        this.maxY = Math.max(minY, maxY);
-        this.maxZ = Math.max(minZ, maxZ);
-      }
-
-      public boolean contains(double x, double y, double z) {
-        return x >= this.minX && x <= this.maxX
-            && y >= this.minY && y <= this.maxY
-            && z >= this.minZ && z <= this.maxZ;
-      }
-    }
-  }
 
   public static class DiscordWebhook {
 
